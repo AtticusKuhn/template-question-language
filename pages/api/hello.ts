@@ -1,13 +1,15 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { compile, CompileResult } from '../../lib/compiler'
+import { runParser } from '../../lib/language/runParser'
 
-type Data = {
-  name: string
-}
+// type Data = {
+//   name: string
+// }
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<string>
 ) {
-  res.status(200).json({ name: 'John Doe' })
+  res.status(200).json(runParser(req.body))
 }
