@@ -52,11 +52,7 @@ text -> %myText {%id%}# {% d=>console.log("in text, d is", d) || d[0].join("") %
     #             return data[1];
     #         }
     #     %}
-float ->
-      int "." int   {% function(d) {return parseFloat(d[0] + d[1] + d[2])} %}
-	| int           {% function(d) {return parseInt(d[0])} %}
 
-int -> [0-9]:+        {% function(d) {return d[0].join(""); } %}
 # statements
 #     ->  statement (__lb_ statement):*
 #         {%
@@ -81,16 +77,7 @@ var_assign -> identifier "=" expr
             }
         %}
         
-variable -> [a-zA-Z]:+ {%(d)=>{
-    console.log(d)
-    console.log(`variable called with "${d.join("")}"`)
-    try{
-     return context[d.join("")]
-    }catch{
-        return d.join("")
-    }
-}
-    %}
+
 
 
 
@@ -105,16 +92,33 @@ value
     #  | variable {%id%}
 
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
-string -> %string {%d=>d.join("")%}
+string -> 
+    %string {%d=>d.join("").substring(1,d.join("").length-1 )%}
+    | "concatenate" _ string _ string {%(d) => d[2] + d[4]%}
+    | variable {%id%}
+float ->
+      int "." int   {% function(d) {return parseFloat(d[0] + d[1] + d[2])} %}
+	| int           {% function(d) {return parseInt(d[0])} %}
 
+int -> [0-9]:+       {% function(d) {return d[0].join(""); } %}
 number 
-    -> float {%id%}
+    -> %number {%d=> Number(d)%}
     | "plus" _  float  float {%(d)=> d[2] + d[3] %}
     | "minus" _  float  float {%(d)=> d[2] - d[3] %}
     | "increment" _ number {%(d)=> d[2]+1%}
+    | number _ "+" _ number {% function(d) {return d[0]+d[4]; } %}
     | variable {% id%}
 
-
+variable -> %identifier {%(d)=>{
+    console.log(d)
+    console.log(`variable called with "${d.join("")}"`)
+    try{
+     return context[d.join("")]
+    }catch{
+        return d.join("")
+    }
+}
+    %}
 
  NL -> ([\n]) {%id%}
 # Mandatory line-break with optional whitespace around it
