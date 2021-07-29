@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { ChangeEventHandler, TextareaHTMLAttributes, useRef, useState } from 'react'
+import CodeEditor from '../components/CodeEditor'
 import { runParser } from '../lib/language/runParser'
 import styles from '../styles/Home.module.css'
 
@@ -21,7 +22,11 @@ export default function Home() {
   }
   return (
     <>
-      <textarea style={{ width: "50vw", height: "50vh" }} onChange={handleChange} ref={textareaRef} placeholder="type something" />
+      <CodeEditor
+        code="I am some code"
+        editable
+      />
+      {/* <textarea style={{ width: "50vw", height: "50vh" }} onChange={handleChange} ref={textareaRef} placeholder="type something" /> */}
       {/* <button>Compile</button> */}
       <pre ref={outputaRef} className="output"></pre>
     </>

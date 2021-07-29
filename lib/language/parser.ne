@@ -8,7 +8,9 @@ const moo = require('moo');
     keyWords: /if|then|else/,
     boolean:/true|false/,
     // assignVariable:/[a-zA-Z]+=[^=]+/
-    myVariable: /[a-zA-Z]+(?!.*=)/,
+        isEqual:/==/,
+
+    myVariable: /[a-zA-Z]+(?!=)=(?!=)/, ///[a-zA-Z]+(?!.*=)/,
     WS: /[ \t]+/,
     comment: /\/\/.*?$/,
     // number: /0|[1-9][0-9]*/,
@@ -21,7 +23,6 @@ const moo = require('moo');
     rbrace: '}',
     identifier: /[a-zA-Z][a-zA-Z_0-9]*/,
     fatarrow: '=>',
-    isEqual:/==/,
     assign: '=',
     NL: { match: /\n/, lineBreaks: true },
 });
@@ -100,6 +101,8 @@ value
     | string {%id%}
     | boolean {%id%}
     | conditional {%id%}
+
+
 conditional -> "if" _  boolean _  "then" _  value  _ "else" _  value {%(d)=>
 d[2] ?
      d[6]
@@ -110,6 +113,7 @@ d[2] ?
 boolean
     -> %boolean {%d=> d[0].toString()==="true"%}
     | value _ %isEqual _ value {%(d)=> d[0] === d[4]%}
+    | variable {%id%}
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
 string -> 
     %string {%d=>d.join("").substring(1,d.join("").length-1 )%}

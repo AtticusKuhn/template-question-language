@@ -49,3 +49,15 @@ test('{if true then 1 else 2}', () => {
 test('{if false then 1 else 2}', () => {
     expect(runParser("{if false then 1 else 2}")).toBe("2");
 })
+/*{a=true}
+{a}
+{if a then 1 else 2}*/
+test(`{a=true}
+{a}
+{if a then 1 else 2}`, () => {
+    expect(runParser(`{a=true}
+    {a}
+    {if a then 1 else 2}`)).toBe(`
+    true
+    1`);
+})
