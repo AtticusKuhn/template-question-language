@@ -17,7 +17,7 @@ const moo = require('moo');
     identifier: /[a-zA-Z][a-zA-Z_0-9]*/,
     fatarrow: '=>',
     assign: '=',
-    myVariable: /[a-zA-Z][^=]/,
+    myVariable: /[a-zA-Z]+/,
     NL: { match: /\n/, lineBreaks: true },
 });
 
@@ -71,42 +71,36 @@ statement
     -> var_assign  {% id %}
     | expr {%id%}
 
-identifier -> %identifier {%(d)=>console.log("identifier called") || d.join("")%}
-variable -> %myVariable {%(d)=>{
+identifier -> %identifier {%(d)=>d.join("")%}
+
+var_assign -> identifier "=" expr
+        {%
+            (data) => {
+                context[data[0]] = data[2]
+                return ""
+            }
+        %}
+variable -> [a-zA-Z]:+ {%(d)=>{
     console.log("variable called")
     try{
-    const res= evalWithContext(`globals.${d.join("")}`, context)
-    return res.result
+     return context[d.join("")]
     }catch{
         return d.join("")
     }
 }
     %}
-var_assign -> identifier "=" expr
-        {%
-            (data) => {
-                // console.log("data", data)
-                const res= evalWithContext(`globals.${data[0]} = ${data[2]}`, context)
-                context = res.newContext
-                return  {
-                    type:"var_assign",
-                    value:`globals.${data[0]} = ${data[2]}`,
-                }
-            }
-        %}
-
 
 
 
 expr
     -> value {%id%}
-    |  identifier {% id %}
+    # |  identifier {% id %}
 
 
 value 
     -> number  {%id%}
     | string {%id%}
-    |varaible {%id%}
+    | variable {%id%}
 
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
 string -> %string {%d=>d.join("")%}
@@ -116,13 +110,7 @@ number
     | "plus" _  float  float {%(d)=> d[2] + d[3] %}
     | "minus" _  float  float {%(d)=> d[2] - d[3] %}
     | "increment" _ number {%(d)=> d[2]+1%}
-    | variable {%d=>{
-        /* console.log("varaible number checking is", d)
-        # if(isNaN(d[0]) && d[0] !== undefined){
-        #     throw new Error("variable is not a number")
-        # }*/
-        return d[0]
-    }%}
+    # | variable {% id%}
 
 
 

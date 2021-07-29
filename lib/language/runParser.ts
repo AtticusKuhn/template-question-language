@@ -32,10 +32,10 @@ export const runParser = (parserInput: string): string => {
         const parsing = parse(parserInput)
         console.log("parsing:")
         console.log(parsing)
-        const evalled = evalStatments(parsing)
-        console.log("evalled:")
-        console.log(evalled)
-        return JSON.stringify(evalled)
+        // const evalled = evalStatments(parsing)
+        // console.log("evalled:")
+        // console.log(evalled)
+        return parsing.join("")
     } catch (e) {
         return e.toString();
     }
