@@ -80,8 +80,10 @@ var_assign -> identifier "=" expr
                 return ""
             }
         %}
+        
 variable -> [a-zA-Z]:+ {%(d)=>{
-    console.log("variable called")
+    console.log(d)
+    console.log(`variable called with "${d.join("")}"`)
     try{
      return context[d.join("")]
     }catch{
@@ -100,7 +102,7 @@ expr
 value 
     -> number  {%id%}
     | string {%id%}
-    | variable {%id%}
+    #  | variable {%id%}
 
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
 string -> %string {%d=>d.join("")%}
@@ -110,7 +112,7 @@ number
     | "plus" _  float  float {%(d)=> d[2] + d[3] %}
     | "minus" _  float  float {%(d)=> d[2] - d[3] %}
     | "increment" _ number {%(d)=> d[2]+1%}
-    # | variable {% id%}
+    | variable {% id%}
 
 
 
