@@ -5,12 +5,12 @@ function parse(code: string): string {
     // const code = (await fs.readFile(filename)).toString();
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
     parser.feed(code);
-    console.log("parser:")
-    console.log(parser)
+    // console.log("parser:")
+    // console.log(parser)
     if (parser.results.length > 1) {
-        console.log("Error: ambigous grammar detected \n\n" + parser.results[0].join(""));
+        console.error("Error: ambigous grammar detected \n\n" + parser.results[0].join(""));
         // throw new Error("Error: ambigous grammar detected")
-        return `Error: ambigous grammar detected: \n\n` + parser.results[0].join("")
+        return parser.results[0].join("")
         // for (let i = 0; i < parser.results.length; i++) {
         //     const ast = parser.results[i];
         //     return ast
@@ -25,7 +25,7 @@ function parse(code: string): string {
         console.log("Error: no parse found.");
 
         throw new Error("no parse fpiund")
-        return null
+        return "Error: no parse found."
     }
 }
 export const runParser = (parserInput: string): string => {

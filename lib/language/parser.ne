@@ -4,20 +4,24 @@ const moo = require('moo');
 
  let myLexer = moo.compile({
     // myVariable: /[a-zA-Z]+[^=]/,
-         myText: /[^}\n](?![^{]*})/,
-
+    myText: /[^}\n](?![^{]*})/,
+    keyWords: /if|then|else/,
+    boolean:/true|false/,
+    // assignVariable:/[a-zA-Z]+=[^=]+/
     myVariable: /[a-zA-Z]+(?!.*=)/,
     WS: /[ \t]+/,
     comment: /\/\/.*?$/,
     // number: /0|[1-9][0-9]*/,
     number: /[0-9]+/,
     string: /"(?:\\["\\]|[^\n"\\])*"/,
+    plus: /\+/,
     lparen: '(',
     rparen: ')',
     lbrace: '{',
     rbrace: '}',
     identifier: /[a-zA-Z][a-zA-Z_0-9]*/,
     fatarrow: '=>',
+    isEqual:/==/,
     assign: '=',
     NL: { match: /\n/, lineBreaks: true },
 });
@@ -34,7 +38,9 @@ const evalWithContext = (jsString, context)=> {
     return { result, newContext }
 };
 let context = {
-    increment: (x)=> x+1
+    increment: (x)=> x+1,
+    concatenate: (a,b)=>a+b,
+    plus: (a,b)=>a+b,
 };
 
 %}
@@ -72,7 +78,7 @@ statement
 
 identifier -> %identifier {%(d)=>d.join("")%}
 
-var_assign -> identifier "=" expr
+var_assign -> identifier %assign expr
         {%
             (data) => {
                 context[data[0]] = data[2]
@@ -92,8 +98,18 @@ expr
 value 
     -> number  {%id%}
     | string {%id%}
+    | boolean {%id%}
+    | conditional {%id%}
+conditional -> "if" _  boolean _  "then" _  value  _ "else" _  value {%(d)=>
+d[2] ?
+     d[6]
+:
+     d[10]
+%}
     #  | variable {%id%}
-
+boolean
+    -> %boolean {%d=> d[0].toString()==="true"%}
+    | value _ %isEqual _ value {%(d)=> d[0] === d[4]%}
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
 string -> 
     %string {%d=>d.join("").substring(1,d.join("").length-1 )%}
@@ -107,10 +123,10 @@ float ->
 int -> [0-9]:+       {% function(d) {return d[0].join(""); } %}
 number 
     -> %number {%d=> Number(d)%}
-    | "plus" _  float  float {%(d)=> d[2] + d[3] %}
-    | "minus" _  float  float {%(d)=> d[2] - d[3] %}
+    | "plus" _  float  _  float {%(d)=> d[2] + d[4] %}
+    | "minus" _  float _   float {%(d)=> d[2] - d[4] %}
     | "increment" _ number {%(d)=> d[2]+1%}
-    | number _ "+" _ number {% function(d) {return d[0]+d[4]; } %}
+    |  number _  %plus _ number {% function(d) {return d[0]+d[4]; } %}
     | variable {% id%}
     # | value {%id%}
 
