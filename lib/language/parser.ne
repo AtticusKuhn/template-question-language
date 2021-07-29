@@ -3,8 +3,10 @@
 const moo = require('moo');
 
  let myLexer = moo.compile({
+    // myVariable: /[a-zA-Z]+[^=]/,
+         myText: /[^}\n](?![^{]*})/,
 
-     myText: /[^}\n](?![^{]*})/,
+    myVariable: /[a-zA-Z]+(?!.*=)/,
     WS: /[ \t]+/,
     comment: /\/\/.*?$/,
     // number: /0|[1-9][0-9]*/,
@@ -17,7 +19,6 @@ const moo = require('moo');
     identifier: /[a-zA-Z][a-zA-Z_0-9]*/,
     fatarrow: '=>',
     assign: '=',
-    myVariable: /[a-zA-Z]+/,
     NL: { match: /\n/, lineBreaks: true },
 });
 
@@ -32,7 +33,9 @@ const evalWithContext = (jsString, context)=> {
     const [result, newContext] = new Function("g", code)(context);
     return { result, newContext }
 };
-let context = {};
+let context = {
+    increment: (x)=> x+1
+};
 
 %}
 
@@ -95,6 +98,7 @@ value
 string -> 
     %string {%d=>d.join("").substring(1,d.join("").length-1 )%}
     | "concatenate" _ string _ string {%(d) => d[2] + d[4]%}
+    # | value {%id%}
     | variable {%id%}
 float ->
       int "." int   {% function(d) {return parseFloat(d[0] + d[1] + d[2])} %}
@@ -108,15 +112,19 @@ number
     | "increment" _ number {%(d)=> d[2]+1%}
     | number _ "+" _ number {% function(d) {return d[0]+d[4]; } %}
     | variable {% id%}
+    # | value {%id%}
 
-variable -> %identifier {%(d)=>{
+variable -> %myVariable {%(d)=>{
     console.log(d)
     console.log(`variable called with "${d.join("")}"`)
-    try{
+    //try{
+        if(! context[d.join("")]){
+            throw new Error(`the variable ${d.join("")} is not defined `)
+        }
      return context[d.join("")]
-    }catch{
-        return d.join("")
-    }
+    /* }catch{
+    #     return d.join("")
+    # }*/
 }
     %}
 

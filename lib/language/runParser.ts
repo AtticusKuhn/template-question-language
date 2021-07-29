@@ -1,28 +1,30 @@
 import nearley from "nearley"
 import grammar from "./parser"
 
-function parse(code: string) {
+function parse(code: string): string {
     // const code = (await fs.readFile(filename)).toString();
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
     parser.feed(code);
     console.log("parser:")
     console.log(parser)
     if (parser.results.length > 1) {
-        console.log("Error: ambigous grammar detected");
-        throw new Error("Error: ambigous grammar detected")
-        return parser.results[0]
+        console.log("Error: ambigous grammar detected \n\n" + parser.results[0].join(""));
+        // throw new Error("Error: ambigous grammar detected")
+        return `Error: ambigous grammar detected: \n\n` + parser.results[0].join("")
         // for (let i = 0; i < parser.results.length; i++) {
         //     const ast = parser.results[i];
         //     return ast
         // }
     } else if (parser.results.length == 1) {
-        const ast = parser.results[0];
+        const ast = parser.results[0].join("");
         // const outputFilename = filename.replace(".small", ".ast");
         // await fs.writeFile(outputFilename, JSON.stringify(ast, null, "  "));
         // console.log(`Wrote ${outputFilename}.`);
         return ast
     } else {
         console.log("Error: no parse found.");
+
+        throw new Error("no parse fpiund")
         return null
     }
 }
@@ -35,7 +37,7 @@ export const runParser = (parserInput: string): string => {
         // const evalled = evalStatments(parsing)
         // console.log("evalled:")
         // console.log(evalled)
-        return parsing.join("")
+        return parsing
     } catch (e) {
         return e.toString();
     }
