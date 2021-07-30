@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "gen": "nearleyc ./lib/language/parser.ne -o ./lib/language/parser.js",
+    "gen2": "nearleyc ./lib/embeddedjs/parser.ne -o ./lib/embeddedjs/parser.js",
     "tsc": "tsc ./lib/language/runParser.ts"
   },
   "dependencies": {
