@@ -5,7 +5,7 @@ import { runParser } from "../lib/language/runParser";
 import Prism, { highlight } from "./prism.js"
 Prism.languages.retmajgau = {
     myText: { pattern: /[^}\n](?![^{]*})/ },
-    keyWords: { pattern: /if|then|else/ },
+    keyWords: { pattern: /if|then|else|for/ },
     boolean: { pattern: /true|false/ },
     // assignVariable:/[a-zA-Z]+=[^=]+/
     isEqual: { pattern: /==/ },

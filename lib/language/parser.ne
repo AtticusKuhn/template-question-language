@@ -5,10 +5,21 @@ const moo = require('moo');
  let myLexer = moo.compile({
     // myVariable: /[a-zA-Z]+[^=]/,
     myText: /[^}\n](?![^{]*})/,
-    keyWords: /if|then|else/,
+    keyWords: /if|then|else|for/,
     boolean:/true|false/,
     // assignVariable:/[a-zA-Z]+=[^=]+/
     isEqual:/==/,
+    myFunction:{match:/\([^}]+\)\=\>[^}]+/, value: s => ({
+        params: s.match(/\(([^}]+)\)\=\>([^}]+)/)[1].split(","),
+        body: s.match(/\(([^}]+)\)\=\>([^}]+)/)[2],
+    })} ,
+    functionCall: {
+        match: /[a-zA-Z][a-zA-Z_0-9]*\(.*\)/,
+        value:s=>({
+            functionName: s.match(/([a-zA-Z][a-zA-Z_0-9]*)\((.*)\)/)[1],
+            functionParams: s.match(/([a-zA-Z][a-zA-Z_0-9]*)\((.*)\)/)[2].split(",")
+        })
+    },
     myVariable: /[a-zA-Z]+=(?!=)/, ///[a-zA-Z]+(?!.*=)/,
     WS: /[ \t]+/,
     comment: /\/\/.*?$/,
@@ -26,21 +37,11 @@ const moo = require('moo');
     NL: { match: /\n/, lineBreaks: true },
 });
 
-const evalWithContext = (jsString, context)=> {
-    const code = `
-    let globals = g
-    let res= eval('${jsString}')
-    return [ res, globals]
-    `
-    // console.log("evalling code:")
-    // console.log(code)
-    const [result, newContext] = new Function("g", code)(context);
-    return { result, newContext }
-};
 let context = {
     increment: (x)=> x+1,
     concatenate: (a,b)=>a+b,
     plus: (a,b)=>a+b,
+    randomInteger: (l, h)=> Math.floor(Math.random()*(l-h)) + l
 };
 
 %}
@@ -86,11 +87,59 @@ expr
     # |  identifier {% id %}
 
 
+function -> %myFunction
+    {%
+        (data) => {
+            console.log("function recieved", data)
+    //return "hello"
+                return {
+                type: "function",
+                parameters: data[0].value.params,
+                body:data[0].value.body,
+            }
+        }
+    %}
+    fun_call
+    -> %functionCall
+        {%
+            (data) => {
+                const {functionName, functionParams} = data[0].value
+                if(!context[functionName]){
+                    throw new Error(`cannot find the function named "${functionName}"`)
+                }
+                return "funcall"
+            }
+        %}
+    
+# param_list
+#     -> %identifier (__ %identifier):*
+#         {%
+#             (data) => {
+#                 const repeatedPieces = data[1];
+#                 const restParams = repeatedPieces.map(piece => piece[1]);
+#                 return [data[0], ...restParams];
+#             }
+#         %}
+
+# lambda_body
+#     -> expr
+#         {%
+#             (data) => {
+#                 console.log("lambda body,", data)
+#                 return [data[0]];
+#             }
+#         %}
 value 
-    -> number  {%id%}
+    -> 
+fun_call {%id%}
+   | number  {%id%}
     | string {%id%}
     | boolean {%id%}
     | conditional {%id%}
+    | for_loop {%id%}
+    |function {%id%}
+
+for_loop -> "for" _ number _ number (value|function)
 
 
 conditional -> "if" _  boolean _  "then" _  value  _ "else" _  value {%(d)=>
@@ -122,6 +171,7 @@ number
     | "increment" _ number {%(d)=> d[2]+1%}
     |  number _  %plus _ number {% function(d) {return d[0]+d[4]; } %}
     | variable {% id%}
+    | "randomInteger" _ number  _ number {%d=> context.randomInteger(d[2], d[4])%}
     # | value {%id%}
 
     var_assign -> %myVariable expr
