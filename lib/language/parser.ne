@@ -8,9 +8,8 @@ const moo = require('moo');
     keyWords: /if|then|else/,
     boolean:/true|false/,
     // assignVariable:/[a-zA-Z]+=[^=]+/
-        isEqual:/==/,
-
-    myVariable: /[a-zA-Z]+(?!=)=(?!=)/, ///[a-zA-Z]+(?!.*=)/,
+    isEqual:/==/,
+    myVariable: /[a-zA-Z]+=(?!=)/, ///[a-zA-Z]+(?!.*=)/,
     WS: /[ \t]+/,
     comment: /\/\/.*?$/,
     // number: /0|[1-9][0-9]*/,
@@ -77,16 +76,7 @@ statement
     -> var_assign  {% id %}
     | expr {%id%}
 
-identifier -> %identifier {%(d)=>d.join("")%}
 
-var_assign -> identifier %assign expr
-        {%
-            (data) => {
-                context[data[0]] = data[2]
-                return ""
-            }
-        %}
-        
 
 
 
@@ -134,9 +124,22 @@ number
     | variable {% id%}
     # | value {%id%}
 
-variable -> %myVariable {%(d)=>{
+    var_assign -> %myVariable expr
+        {%
+
+            (data) => {
+                console.log("var assign got data:", data) ;
+                context[data[0].toString().substring(0, data[0].toString().length-1)] = data[1]
+                return ""
+            }
+        %}
+      identifier -> %identifier {%(d)=>d.join("")%}
+  
+
+variable -> %identifier {%(d)=>{
     console.log(d)
     console.log(`variable called with "${d.join("")}"`)
+    console.log("context is", context)
     //try{
         if(! context[d.join("")]){
             throw new Error(`the variable ${d.join("")} is not defined `)
@@ -147,6 +150,7 @@ variable -> %myVariable {%(d)=>{
     # }*/
 }
     %}
+
 
  NL -> ([\n]) {%id%}
 # Mandatory line-break with optional whitespace around it

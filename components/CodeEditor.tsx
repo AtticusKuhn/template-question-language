@@ -35,25 +35,27 @@ interface LiveCodeEditorProps {
 export const LiveCodeEditor: React.FC<LiveCodeEditorProps> = (props) => {
     const { defaultCode } = props
     const [code, setCode] = useState(defaultCode)
+    const [output, setOutput] = useState(runParser(defaultCode))
     const outputRef = useRef(null)
-    function onChange(_event: any, newCode: string) {
+    function onChange(newCode: string) {
         setCode(newCode)
-        outputRef.current.innerText = runParser(newCode);
+        setOutput(runParser(newCode))
+        // outputRef.current.innerText = runParser(newCode);
     }
     return <>
         <CodeEditor
-            code={defaultCode}
+            code={code}
             editable
             onChange={onChange}
         />
-        <div ref={outputRef} className="output" />
+        <div ref={outputRef} className="output">{output}</div>
     </>
 }
 
 interface CodeEditorProps {
     editable?: boolean
     code: string;
-    onChange?: (e: FormEvent<HTMLDivElement>, value: string) => any;
+    onChange?: (value: string) => any;
 }
 const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     const { editable, code, onChange } = props
@@ -61,9 +63,13 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
     return (
         <>
             <Editor
-                onChange={(e) => onChange && onChange(e, rcode)}
+                // onChange={(e) => console.log("onchange", ) onChange && onChange(e, rcode)}
                 value={rcode}
-                onValueChange={(rcode) => setCode(rcode)}
+                onValueChange={(rcode) => {
+                    setCode(rcode)
+                    onChange && onChange(rcode)
+
+                }}
                 highlight={(code) => highlight(code, Prism.languages.retmajgau)}
                 padding={10}
                 style={{
