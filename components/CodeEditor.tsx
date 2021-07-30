@@ -1,4 +1,4 @@
-import { FormEvent, FormEventHandler, useEffect, useRef, useState } from "react"
+import { FormEvent, FormEventHandler, useEffect, useMemo, useRef, useState } from "react"
 import Editor from "react-simple-code-editor";
 import { runParser } from "../lib/language/runParser";
 // const Prism = require("./prism")
@@ -8,6 +8,10 @@ Prism.languages.retmajgau = {
     keyWords: { pattern: /if|then|else|for/ },
     boolean: { pattern: /true|false/ },
     // assignVariable:/[a-zA-Z]+=[^=]+/
+    myFunction: { pattern: /\([^}]+\)\=\>[^}]+/ },
+    functionCall: {
+        pattern: /[a-zA-Z][a-zA-Z_0-9]*\(.*\)/
+    },
     isEqual: { pattern: /==/ },
 
     myVariable: { pattern: /[a-zA-Z]+(?!=)=(?!=)/ }, ///[a-zA-Z]+(?!.*=)/,
@@ -35,7 +39,8 @@ interface LiveCodeEditorProps {
 export const LiveCodeEditor: React.FC<LiveCodeEditorProps> = (props) => {
     const { defaultCode } = props
     const [code, setCode] = useState(defaultCode)
-    const [output, setOutput] = useState(runParser(defaultCode))
+    const defaultOutput = useMemo(() => runParser(code), [defaultCode])
+    const [output, setOutput] = useState(defaultOutput)
     const outputRef = useRef(null)
     function onChange(newCode: string) {
         setCode(newCode)
@@ -65,9 +70,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
             <Editor
                 // onChange={(e) => console.log("onchange", ) onChange && onChange(e, rcode)}
                 value={rcode}
-                onValueChange={(rcode) => {
-                    setCode(rcode)
-                    onChange && onChange(rcode)
+                onValueChange={(newCode) => {
+                    setCode(newCode)
+                    onChange && onChange(newCode)
 
                 }}
                 highlight={(code) => highlight(code, Prism.languages.retmajgau)}
@@ -137,6 +142,12 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
              }
             .assign: {
                 color: purple
+            }
+            .functionCall {
+               color: orange;
+            }
+            .myFunction {
+                color: yellow;
             }
             `}</style>
         </>

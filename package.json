@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "gen": "nearleyc ./lib/language/parser.ne -o ./lib/language/parser.js"
+    "gen": "nearleyc ./lib/language/parser.ne -o ./lib/language/parser.js",
+    "tsc": "tsc ./lib/language/runParser.ts"
   },
   "dependencies": {
     "moo": "^0.5.1",

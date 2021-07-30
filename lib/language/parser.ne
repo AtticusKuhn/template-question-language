@@ -1,7 +1,7 @@
 @{%
 // const myLexer = require("./lexer");
 const moo = require('moo');
-
+const runParser = require("./runParser.js")
  let myLexer = moo.compile({
     // myVariable: /[a-zA-Z]+[^=]/,
     myText: /[^}\n](?![^{]*})/,
@@ -107,7 +107,14 @@ function -> %myFunction
                 if(!context[functionName]){
                     throw new Error(`cannot find the function named "${functionName}"`)
                 }
-                return "funcall"
+                console.log("runParser : ", runParser)
+             console.log("runParser.runStatmentWithContext ; ", runParser.runStatmentWithContext )
+                let zippedParams = {}
+                for(let i=0; i< context[functionName].parameters.length; i++){
+                    zippedParams[context[functionName].parameters[i]] = functionParams[i]
+                }
+                return runParser.runStatmentWithContext(context[functionName].body, zippedParams)
+                // return "funcall"
             }
         %}
     
@@ -125,7 +132,6 @@ function -> %myFunction
 #     -> expr
 #         {%
 #             (data) => {
-#                 console.log("lambda body,", data)
 #                 return [data[0]];
 #             }
 #         %}
@@ -178,7 +184,7 @@ number
         {%
 
             (data) => {
-                console.log("var assign got data:", data) ;
+                // console.log("var assign got data:", data) ;
                 context[data[0].toString().substring(0, data[0].toString().length-1)] = data[1]
                 return ""
             }
@@ -187,9 +193,9 @@ number
   
 
 variable -> %identifier {%(d)=>{
-    console.log(d)
+    /*console.log(d)
     console.log(`variable called with "${d.join("")}"`)
-    console.log("context is", context)
+    console.log("context is", context)*/
     //try{
         if(! context[d.join("")]){
             throw new Error(`the variable ${d.join("")} is not defined `)
