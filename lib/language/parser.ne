@@ -1,7 +1,7 @@
 @{%
 // const myLexer = require("./lexer");
 const moo = require('moo');
-const runParser = require("./runParser.js")
+const runParser = require("./fakeParser.js")
  let myLexer = moo.compile({
     // myVariable: /[a-zA-Z]+[^=]/,
     myText: /[^}\n](?![^{]*})/,
@@ -103,12 +103,13 @@ function -> %myFunction
     -> %functionCall
         {%
             (data) => {
+                console.log("function call called with", data)
                 const {functionName, functionParams} = data[0].value
                 if(!context[functionName]){
                     throw new Error(`cannot find the function named "${functionName}"`)
                 }
-                console.log("runParser : ", runParser)
-             console.log("runParser.runStatmentWithContext ; ", runParser.runStatmentWithContext )
+                //console.log("runParser : ", runParser)
+              // console.log("runParser.runStatmentWithContext ; ", runParser.runStatmentWithContext )
                 let zippedParams = {}
                 for(let i=0; i< context[functionName].parameters.length; i++){
                     zippedParams[context[functionName].parameters[i]] = functionParams[i]
