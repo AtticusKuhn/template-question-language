@@ -19,7 +19,7 @@ function parse(code: string, grammar: any): string {
     if (parser.results.length > 1) {
         console.error("Error: ambigous grammar detected \n\n" + parser.results[0].join(""));
         console.log(parser.results)
-        // throw new Error("Error: ambigous grammar detected")
+        throw new Error("Error: ambigous grammar detected")
         // for (let i = 0; i < parser.results.length; i++) {
         //     const ast = parser.results[i];
         //     return ast

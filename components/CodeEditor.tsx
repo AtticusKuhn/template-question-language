@@ -1,6 +1,7 @@
 import { FormEvent, FormEventHandler, useEffect, useMemo, useRef, useState } from "react"
 import Editor from "react-simple-code-editor";
 import { runParser } from "../lib/language/runParser";
+import { bruhRules, prismStyles } from "../lib/language/lexer"
 // const Prism = require("./prism")
 import Prism, { highlight } from "./prism.js"
 Prism.languages.retmajgau = {
@@ -31,6 +32,8 @@ Prism.languages.retmajgau = {
     fatarrow: { pattern: /=>/ },
     assign: { pattern: /=/ },
 }
+console.log("prism rules are", bruhRules)
+Prism.languages.retmajgau = bruhRules
 
 interface LiveCodeEditorProps {
     defaultCode: string;
@@ -90,8 +93,9 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
 
                 }}
             />
+            <style>{prismStyles}</style>
 
-            <style>{`
+            {/* <style>{`
             .myText { 
                 color: white;
              }
@@ -149,7 +153,7 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
             .myFunction {
                 color: yellow;
             }
-            `}</style>
+            `}</style> */}
         </>
     )
 }
