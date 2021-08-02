@@ -4,35 +4,7 @@ import { runParser } from "../lib/language/runParser";
 import { bruhRules, prismStyles } from "../lib/language/lexer"
 // const Prism = require("./prism")
 import Prism, { highlight } from "./prism.js"
-Prism.languages.retmajgau = {
-    myText: { pattern: /[^}\n](?![^{]*})/ },
-    keyWords: { pattern: /if|then|else|for/ },
-    boolean: { pattern: /true|false/ },
-    // assignVariable:/[a-zA-Z]+=[^=]+/
-    myFunction: { pattern: /\([^}]+\)\=\>[^}]+/ },
-    functionCall: {
-        pattern: /[a-zA-Z][a-zA-Z_0-9]*\(.*\)/
-    },
-    isEqual: { pattern: /==/ },
 
-    myVariable: { pattern: /[a-zA-Z]+(?!=)=(?!=)/ }, ///[a-zA-Z]+(?!.*=)/,
-    WS: { pattern: /[ \t]+/ },
-    comment: { pattern: /\/\/.*?$/ },
-    // number: /0|[1-9][0-9]*/,
-    number: { pattern: /[0-9]+/ },
-    string: { pattern: /"(?:\\["\\]|[^\n"\\])*"/ },
-    plus: { pattern: /\+/ },
-    lparen: { pattern: /\(/ },
-    rparen: { pattern: /\)/ },
-    lbrace: { pattern: /\{/ },
-    rbrace: {
-        pattern: /}/
-    },
-    identifier: { pattern: /[a-zA-Z][a-zA-Z_0-9]*/ },
-    fatarrow: { pattern: /=>/ },
-    assign: { pattern: /=/ },
-}
-console.log("prism rules are", bruhRules)
 Prism.languages.retmajgau = bruhRules
 
 interface LiveCodeEditorProps {
@@ -94,66 +66,6 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
                 }}
             />
             <style>{prismStyles}</style>
-
-            {/* <style>{`
-            .myText { 
-                color: white;
-             }
-            .keyWords { 
-                color: blue
-            }
-            .boolean { 
-                color: Chartreuse;
-             }
-            .isEqual { 
-                color: orange
-             }      
-            .myVariable { 
-                color: yellow;
-             }
-            .WS {
-                color: grey;
-             }
-            .comment { 
-                color: blue;
-            }
-            .number { 
-                color: Chartreuse;
-             }
-            .string {  
-                color: yellow;
-            }
-            .plus { 
-                color: aqua;
-            }
-            .lparen { 
-                color: red;
-            }
-            .rparen { 
-                color: orange
-            }
-            .lbrace { 
-                color: blueViolet;
-             }
-            .rbrace {
-                color: blueViolet;
-            }
-            .identifier { 
-                color: pink
-             }
-            .fatarrow { 
-                color: red;
-             }
-            .assign: {
-                color: purple
-            }
-            .functionCall {
-               color: orange;
-            }
-            .myFunction {
-                color: yellow;
-            }
-            `}</style> */}
         </>
     )
 }
