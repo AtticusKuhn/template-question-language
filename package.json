@@ -13,6 +13,7 @@
     "tsc": "tsc ./lib/language/runParser.ts"
   },
   "dependencies": {
+    "mathjs": "^9.4.4",
     "moo": "^0.5.1",
     "nearley": "^2.20.1",
     "next": "11.0.1",

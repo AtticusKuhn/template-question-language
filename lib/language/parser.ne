@@ -1,10 +1,10 @@
 @{%
 // const myLexer = require("./lexer");
 const moo = require('moo');
-const runParser = require("./fakeParser.js")
+const runParser = require("./fakeRunParser.js")
  let myLexer = moo.compile({
     // myVariable: /[a-zA-Z]+[^=]/,
-    myText: /[^}\n](?![^{]*})/,
+    myText:{match:/[^}](?![^{]*})/, lineBreaks: true },
     keyWords: /if|then|else|for/,
     boolean:/true|false/,
     // assignVariable:/[a-zA-Z]+=[^=]+/
@@ -27,6 +27,7 @@ const runParser = require("./fakeParser.js")
     number: /[0-9]+/,
     string: /"(?:\\["\\]|[^\n"\\])*"/,
     plus: /\+/,
+    times: /\*/,
     lparen: '(',
     rparen: ')',
     lbrace: '{',
@@ -34,15 +35,15 @@ const runParser = require("./fakeParser.js")
     identifier: /[a-zA-Z][a-zA-Z_0-9]*/,
     fatarrow: '=>',
     assign: '=',
-    NL: { match: /\n/, lineBreaks: true },
+     NL: { match: /\n/, lineBreaks: true },
 });
-
+/*
 let context = {
     increment: (x)=> x+1,
     concatenate: (a,b)=>a+b,
     plus: (a,b)=>a+b,
     randomInteger: (l, h)=> Math.floor(Math.random()*(l-h)) + l
-};
+};*/
 
 %}
 
@@ -105,16 +106,22 @@ function -> %myFunction
             (data) => {
                 console.log("function call called with", data)
                 const {functionName, functionParams} = data[0].value
-                if(!context[functionName]){
+                if(!grammar.lookup(functionName)){
                     throw new Error(`cannot find the function named "${functionName}"`)
                 }
                 //console.log("runParser : ", runParser)
               // console.log("runParser.runStatmentWithContext ; ", runParser.runStatmentWithContext )
                 let zippedParams = {}
-                for(let i=0; i< context[functionName].parameters.length; i++){
-                    zippedParams[context[functionName].parameters[i]] = functionParams[i]
+                for(let i=0; i< grammar.lookup(functionName).parameters.length; i++){
+                    zippedParams[grammar.lookup(functionName).parameters[i]] = functionParams[i]
                 }
-                return runParser.runStatmentWithContext(context[functionName].body, zippedParams)
+                return {
+                    type:"function_call",
+                    params: zippedParams,
+                    functionName,
+                    body: grammar.lookup(functionName).body,
+                }
+                // return runParser.runStatmentWithContext(context[functionName].body, Object.assign(context,zippedParams))
                 // return "funcall"
             }
         %}
@@ -138,7 +145,8 @@ function -> %myFunction
 #         %}
 value 
     -> 
-fun_call {%id%}
+    %lparen value %rparen {%d=> d[1]%}
+    |fun_call {%id%}
    | number  {%id%}
     | string {%id%}
     | boolean {%id%}
@@ -177,8 +185,10 @@ number
     | "minus" _  float _   float {%(d)=> d[2] - d[4] %}
     | "increment" _ number {%(d)=> d[2]+1%}
     |  number _  %plus _ number {% function(d) {return d[0]+d[4]; } %}
+     |  number _  %times _ number {% function(d) {return d[0]*d[4]; } %}
+
     | variable {% id%}
-    | "randomInteger" _ number  _ number {%d=> context.randomInteger(d[2], d[4])%}
+    | "randomInteger" _ number  _ number {%d=> grammar.lookup("randomInteger")(d[2], d[4])%}
     # | value {%id%}
 
     var_assign -> %myVariable expr
@@ -186,7 +196,7 @@ number
 
             (data) => {
                 // console.log("var assign got data:", data) ;
-                context[data[0].toString().substring(0, data[0].toString().length-1)] = data[1]
+                grammar.assign(data[0].toString().substring(0, data[0].toString().length-1), data[1])
                 return ""
             }
         %}
@@ -194,14 +204,18 @@ number
   
 
 variable -> %identifier {%(d)=>{
-    /*console.log(d)
-    console.log(`variable called with "${d.join("")}"`)
-    console.log("context is", context)*/
+    //console.log(d)
+    //console.log(`variable called with "${d.join("")}"`)
     //try{
-        if(! context[d.join("")]){
+        if(grammar.lookup(d.join("")) === undefined){
+            console.log("context is", context )
             throw new Error(`the variable ${d.join("")} is not defined `)
         }
-     return context[d.join("")]
+        //console.log("this is", this)
+        //sconsole.log("grammer is", grammar)
+                // console.log("grammer is", grammar)
+
+     return grammar.lookup(d.join(""))//context[d.join("")]
     /* }catch{
     #     return d.join("")
     # }*/
