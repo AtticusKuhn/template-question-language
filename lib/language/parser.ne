@@ -17,9 +17,10 @@ let context = {
 @lexer lexer
 
 program -> thing:+ {%(d) =>  d[0] %}
+    | null {%id%}
 thing -> text {%id%} 
     | "{"  statement "}" {%(data)=> data[1]%}
-    | NL
+   | NL
 
 
 
@@ -64,6 +65,7 @@ function -> %myFunction
                 type: "function",
                 parameters: data[0].value.params,
                 body:data[0].value.body,
+                toString: ()=>data[0].value.body,
             }
         }
     %}
@@ -112,16 +114,17 @@ function -> %myFunction
 #         %}
 value 
     -> 
-    %lparen value %rparen {%d=> d[1]%}
+   %lparen value %rparen {%d=> d[1]%}
     |fun_call {%id%}
    | number  {%id%}
+   | variable {%id%}
     | string {%id%}
     | boolean {%id%}
     | conditional {%id%}
     | for_loop {%id%}
     |function {%id%}
 
-for_loop -> "for" _ number _ number (value|function)
+for_loop -> "for" _ number _ number (value|function) {%id%}
 
 
 conditional -> "if" _  boolean _  "then" _  value  _ "else" _  value {%(d)=>
@@ -134,13 +137,13 @@ d[2] ?
 boolean
     -> %boolean {%d=> d[0].toString()==="true"%}
     | value _ %isEqual _ value {%(d)=> d[0] === d[4]%}
-    | variable {%id%}
+   # | variable {%id%}
 # string -> "\"" [^"]:+ "\"" {%d=>d[1].join("")%}
 string -> 
     %string {%d=>d.join("").substring(1,d.join("").length-1 )%}
-    | "concatenate" _ string _ string {%(d) => d[2] + d[4]%}
+    | "concatenate" _ value _ value {%(d) => d[2] + d[4]%}
     # | value {%id%}
-    | variable {%id%}
+   # | variable {%id%}
 float ->
       int "." int   {% function(d) {return parseFloat(d[0] + d[1] + d[2])} %}
 	| int           {% function(d) {return parseInt(d[0])} %}
@@ -150,11 +153,11 @@ number
     -> %number {%d=> Number(d)%}
     | "plus" _  float  _  float {%(d)=> d[2] + d[4] %}
     | "minus" _  float _   float {%(d)=> d[2] - d[4] %}
-    | "increment" _ number {%(d)=> d[2]+1%}
-    |  number _  %plus _ number {% function(d) {return d[0]+d[4]; } %}
-     |  number _  %times _ number {% function(d) {return d[0]*d[4]; } %}
+    | "increment" _ value {%(d)=> d[2]+1%}
+    |  value _  %plus _ value {% function(d) {return d[0]+d[4]; } %}
+     |  value _  %times _ value {% function(d) {return d[0]*d[4]; } %}
 
-    | variable {% id%}
+   # | variable {% id%}
     | "randomInteger" _ number  _ number {%d=> grammar.lookup("randomInteger")(d[2], d[4])%}
     # | value {%id%}
 
@@ -171,11 +174,12 @@ number
   
 
 variable -> %identifier {%(d)=>{
+    //return d[0]
     //console.log(d)
     //console.log(`variable called with "${d.join("")}"`)
     //try{
         if(grammar.lookup(d.join("")) === undefined){
-            console.log("context is", context )
+            // console.log("context is", context )
             throw new Error(`the variable ${d.join("")} is not defined `)
         }
         //console.log("this is", this)

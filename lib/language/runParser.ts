@@ -3,7 +3,12 @@ import grammar from "./parser"
 
 
 
-
+let context = {
+    increment: (x) => x + 1,
+    concatenate: (a, b) => a + b,
+    plus: (a, b) => a + b,
+    randomInteger: (l, h) => Math.floor(Math.random() * (l - h)) + l
+};
 
 // grammar.
 
@@ -32,7 +37,7 @@ function parse(code: string, grammar: any): string {
         // console.log("token:", token)
         if (ast[i].type === "function_call") {
             console.log("function call")
-            ast[i] = runParser(ast[i].body, ast[i].params)
+            ast[i] = runParser(`{${ast[i].body}}`, ast[i].params)
         }
     }
     // const outputFilename = filename.replace(".small", ".ast");
@@ -53,12 +58,7 @@ export const runParser = (parserInput: string, newContext: Context = {}): string
         //             `${Object.keys(context).map(key => `{${key}=${context[key]}}`).join("\n")}
         // ${parserInput}`
         //         console.log("test", test)
-        let context = {
-            increment: (x) => x + 1,
-            concatenate: (a, b) => a + b,
-            plus: (a, b) => a + b,
-            randomInteger: (l, h) => Math.floor(Math.random() * (l - h)) + l
-        };
+
         Object.assign(context, newContext)
         grammar.lookup = (name) => { return context[name]; }
         grammar.assign = (name, value) => { return context[name] = value; }

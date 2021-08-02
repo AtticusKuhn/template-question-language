@@ -56,8 +56,10 @@ const CodeEditor: React.FC<CodeEditorProps> = (props) => {
                     fontFamily: '"Fira code", "Fira Mono", monospace',
                     background: "#272822",
 
-                    fontSize: 12,
+                    fontSize: 20,
                     color: "#f8f8f2",
+                    caretColor: "green",
+
                     // background: "none",
                     textShadow: "0 1px rgba(0, 0, 0, 0.3)",
                     // fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
