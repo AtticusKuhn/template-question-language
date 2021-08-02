@@ -127,7 +127,7 @@ value
 for_loop -> "for" _ number _ number (value|function) {%id%}
 
 
-conditional -> "if" _  boolean _  "then" _  value  _ "else" _  value {%(d)=>
+conditional -> "if" _  value _  "then" _  value  _ "else" _  value {%(d)=>
 d[2] ?
      d[6]
 :
