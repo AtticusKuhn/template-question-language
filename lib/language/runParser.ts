@@ -1,4 +1,5 @@
 import nearley from "nearley"
+import { insertArrayAtIndex } from "../../utils";
 import grammar from "./parser"
 
 
@@ -7,6 +8,7 @@ let context = {
     increment: (x) => x + 1,
     concatenate: (a, b) => a + b,
     plus: (a, b) => a + b,
+    times: (a, b) => a * b,
     randomInteger: (l, h) => Math.floor(Math.random() * (l - h)) + l
 };
 
@@ -18,7 +20,7 @@ function parse(code: string, grammar: any): string {
     parser.feed(code);
     // console.log("parser:")
     // console.log(parser)
-    if (parser.results.length === 0) {
+    if (!parser.results || parser.results.length === 0) {
         throw new Error("no parser found for input")
     }
     if (parser.results.length > 1) {
@@ -32,9 +34,12 @@ function parse(code: string, grammar: any): string {
     }
     //  if (parser.results.length == 1) {
 
-    const ast = parser.results[0]
+    const ast = parser.results[0].flat()
     for (let i = 0; i < ast.length; i++) {
-        // console.log("token:", token)
+        console.log("token:", ast[i])
+        // if (Array.isArray(ast[i])) {
+        //     ast = insertArrayAtIndex(ast, i, ast[i])
+        // }
         if (ast[i].type === "function_call") {
             console.log("function call")
             ast[i] = runParser(`{${ast[i].body}}`, ast[i].params)
@@ -62,7 +67,9 @@ export const runParser = (parserInput: string, newContext: Context = {}): string
         Object.assign(context, newContext)
         grammar.lookup = (name) => { return context[name]; }
         grammar.assign = (name, value) => { return context[name] = value; }
-
+        grammar.debugging = {}
+        grammar.debugging.context = context
+        grammar.setContext = (newContext) => Object.assign(context, newContext)
         const parsing = parse(parserInput, grammar)
         // console.log("parsing:")
         // console.log(parsing)

@@ -1,8 +1,10 @@
 @{%
 // const myLexer = require("./lexer");
 const moo = require('moo');
-const runParser = require("./fakeRunParser.js")
+// const runParser = require("./fakeRunParser.js")
 const {lexer} = require("./lexer")
+const math = require("mathjs")
+const parser = new math.parser()
 /*
 
 let context = {
@@ -18,9 +20,30 @@ let context = {
 
 program -> thing:+ {%(d) =>  d[0] %}
     | null {%id%}
-thing -> text {%id%} 
+thing -> 
+     comment
+    |textFormat
+    |text {%id%} 
     | "{"  statement "}" {%(data)=> data[1]%}
-   | NL
+    | math
+    | NL
+comment -> %comment {%(d)=> ""%}
+textFormat -> %textFormat {%d=>"I am textformat"%}
+
+math -> %math {%d=>{
+    console.log("evalling math", d[0].value)
+    //console.log("math is", math)
+    let resStr="";
+      try {
+        let res = parser.evaluate(d[0].value);
+        grammar.setContext(Object.fromEntries(parser.scope))
+        resStr = math.format(res, { precision: 14 });
+      }
+      catch (err) {
+        resStr = err.toString();
+      }
+    return resStr;
+ } %}
 
 
 
@@ -87,6 +110,7 @@ function -> %myFunction
                 return {
                     type:"function_call",
                     params: zippedParams,
+                    toString: ()=>`function call converted to stirng`,
                     functionName,
                     body: grammar.lookup(functionName).body,
                 }
@@ -121,9 +145,35 @@ value
     | string {%id%}
     | boolean {%id%}
     | conditional {%id%}
-    | for_loop {%id%}
+    | loop {%id%}
     |function {%id%}
 
+loop -> for_loop {%id%}
+    | iterate_loop {%id%}
+
+iterate_loop -> "iterate" _ number _ (value|function){%d=>{
+    let iterations = d[2]
+    let val = d[4][0]
+    console.log("val is", val)
+
+    if(val.type && val.type === "function"){
+        console.log("is function")
+       return [...Array(iterations).keys()].map(iteration=>{
+        const {parameters, body} = val
+          return {
+            type:"function_call",
+            toString: ()=>`function call converted to string (from iterate)`,
+            params: {
+                [parameters[0]]: iteration
+            },
+            functionName: "anonymus",
+            body: body,
+        }
+      })  
+    }
+    return new Array(iterations).fill(val)
+
+}%}
 for_loop -> "for" _ number _ number (value|function) {%id%}
 
 
@@ -151,11 +201,12 @@ float ->
 int -> [0-9]:+       {% function(d) {return d[0].join(""); } %}
 number 
     -> %number {%d=> Number(d)%}
-    | "plus" _  float  _  float {%(d)=> d[2] + d[4] %}
+    | "plus" _  value  _  value {%(d)=> d[2] + d[4] %}
+    | "times" _  value  _  value {%(d)=> d[2] * d[4] %}
     | "minus" _  float _   float {%(d)=> d[2] - d[4] %}
     | "increment" _ value {%(d)=> d[2]+1%}
     |  value _  %plus _ value {% function(d) {return d[0]+d[4]; } %}
-     |  value _  %times _ value {% function(d) {return d[0]*d[4]; } %}
+    |  value _  %times _ value {% function(d) {return d[0]*d[4]; } %}
 
    # | variable {% id%}
     | "randomInteger" _ number  _ number {%d=> grammar.lookup("randomInteger")(d[2], d[4])%}
@@ -165,7 +216,7 @@ number
         {%
 
             (data) => {
-                // console.log("var assign got data:", data) ;
+                console.log("var assign got data:", data) ;
                 grammar.assign(data[0].toString().substring(0, data[0].toString().length-1), data[1])
                 return ""
             }
